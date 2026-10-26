@@ -1,4 +1,4 @@
-const User = require('../models/users');
+const { User, Booking, Bus } = require('../models');
 
 const createUser = async (req, res) => {
     try {
@@ -33,6 +33,30 @@ const getUsersById = async (req, res) => {
         }
 
         return res.status(200).json(user);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+const getBookingsByUserId = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const bookings = await Booking.findAll({
+            where: { userId: id },
+            attributes: ['id'],
+            include: [{
+                model: Bus,
+                attributes: ['busNumber']
+            }]
+        });
+
+        return res.status(200).json(bookings);
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -80,6 +104,7 @@ module.exports = {
     createUser,
     getAllUsers,
     getUsersById,
+    getBookingsByUserId,
     updateUser,
     deleteUser
 };
